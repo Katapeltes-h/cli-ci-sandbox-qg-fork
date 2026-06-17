@@ -59,8 +59,8 @@ func TestInputViewKeepsChangedReviewCandidatesWithOriginalRefs(t *testing.T) {
 	if got := singleRef(t, view.Errors); got != "facts.errors[2]" {
 		t.Fatalf("error ref = %q, want facts.errors[2]", got)
 	}
-	if got := singleRef(t, view.Outputs); got != "facts.outputs[2]" {
-		t.Fatalf("output ref = %q, want facts.outputs[2]", got)
+	if len(view.Outputs) != 0 {
+		t.Fatalf("outputs len = %d, want 0 without reject diagnostics", len(view.Outputs))
 	}
 	if len(view.Examples) != 0 {
 		t.Fatalf("examples len = %d, want 0 without diagnostics", len(view.Examples))
@@ -109,8 +109,8 @@ func TestInputViewKeepsSemanticCandidateInsideBroadChangedSurface(t *testing.T) 
 	if got := singleRef(t, view.Commands); got != "facts.commands[137]" {
 		t.Fatalf("command ref = %q, want facts.commands[137]", got)
 	}
-	if got := singleRef(t, view.Outputs); got != "facts.outputs[11]" {
-		t.Fatalf("output ref = %q, want facts.outputs[11]", got)
+	if len(view.Outputs) != 0 {
+		t.Fatalf("outputs len = %d, want 0 without reject diagnostics", len(view.Outputs))
 	}
 }
 
@@ -126,6 +126,12 @@ func TestInputViewOmitsVerboseOutputFields(t *testing.T) {
 			IsList:           true,
 			HasDefaultLimit:  true,
 			HasDecisionField: false,
+		}},
+		Diagnostics: []facts.DiagnosticFact{{
+			Rule:        "default_output_contract",
+			Action:      report.ActionReject,
+			File:        "command-manifest",
+			CommandPath: "base +record-list",
 		}},
 	}
 
@@ -179,6 +185,9 @@ func TestBuildPromptKeepsManyOutputCandidatesWithinRequestLimit(t *testing.T) {
 	}
 	if len(view.Commands) != 0 || len(view.Skills) != 0 {
 		t.Fatalf("default-output view leaked unrelated context: commands=%d skills=%d", len(view.Commands), len(view.Skills))
+	}
+	if len(view.Outputs) != 0 {
+		t.Fatalf("default-output warnings should not enter semantic view without reject diagnostics: outputs=%d", len(view.Outputs))
 	}
 	if got := len(messages[1].Content); got > 16*1024 {
 		t.Fatalf("prompt user content bytes = %d, want <= 16384", got)

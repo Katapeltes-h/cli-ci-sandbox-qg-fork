@@ -156,8 +156,9 @@ func errorReviewCandidate(errFact facts.ErrorFact) bool {
 	return errFact.Boundary && errFact.RequiredHint && errFact.HintActionCount == 0
 }
 
-func outputReviewCandidate(output facts.OutputFact) bool {
-	return output.IsList && (!output.HasDefaultLimit || !output.HasDecisionField)
+func outputReviewCandidate(_ facts.OutputFact) bool {
+	// default_output is observe-first in the current rollout; reject diagnostics add exact output context.
+	return false
 }
 
 type inputSelection struct {
